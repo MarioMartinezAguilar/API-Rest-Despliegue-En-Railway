@@ -1,12 +1,13 @@
 # TITULO DEL PROYECTO    
 
-**API REST DE PRODUCTOS CON SPRING BOOT REPOSITORIO PARA PODER DESPLEGARLO EN RAILWAY**
+**API REST DE PRODUCTOS CON SPRING BOOT REPOSITORIO PARA PODER DESPLEGARLO EN RENDER**
 
 # DESCRIPCIÓN DEL PROYECTO (API REST)
 **Creación de una API REST en Java usando Spring Boot, así como como el uso de otras herramientas para su desarrollo, Conexión a base de datos que se explicaran más a detalle A continuación, además se explicara paso a paso con fragmentos de código como se elaboró esta aplicación (API REST), cabe señalar que esta API REST cuenta con el CRUD completo es decir podemos Eliminar, Crear, Actualizar y Leer registros de los productos de la Base De Datos**
 
-## VISTA PREVIA DE NUESTRO PROYECTO YA FUNCIONANDO (FORMATO JSON DE LA API DE LOS PRODUCTOS QUE REGISTRAMOS):
-![Vista previa del proyecto](./IMG/apirest1.png)
+## VISTA PREVIA DE NUESTRO PROYECTO YA FUNCIONANDO EN EL SERVIDOR DE RENDER (FORMATO JSON DE LA API DE LOS PRODUCTOS QUE REGISTRAMOS):
+![Vista previa del proyecto](./IMG/api-render.png)
+![Vista previa del proyecto](./IMG/api-render2.png)
 
 ## DESARROLLO DE LA API (ARQUITECTURA DE SOFTWARE API REST USANDO EL FRAMEWORK SPRING BOOT)
 **Para el desarrollo de nuestra API aplicamos lo que es un tipo de arquitectura que maneja Java basado en Framework Spring Boot el cual se compone de las siguientes partes:**
@@ -132,13 +133,14 @@
 3. findAll()->Traemos todos los registros de la base de datos
 4. findById()->Buscamos un registro en la base datos por su ID
 
-## CONFIGURACION DEL ARCHIVO APPLICATION.PROPERTIES(Para poder desplegarlo en Railway)
-**Ahora como siguiente paso vamos a configurar este archivo el cual nos va a permitir hacer el despliegue de nuestra aplicación en Railway para eso vamos primero a dejar que Railway automáticamente escoja el puerto donde va a correr nuestra aplicación es decir quitamos la línea donde habíamos puesto que correría en el puerto 8080, Ahora para poder hacer el despliegue de Docker ya que en la versión 21 de Java aun no la soporta Railway por eso usaremos una configuración especial usando Docker en este archivo y además Railway sepa que usare como base de datos PostgreSQL usando Hibernate. Por otro lado, también necesitamos que Railway escoja las variables de entorno de nuestra aplicación eso también fue configurado en este archivo quedando nuestro archivo de la siguiente manera:**
-```spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+## CONFIGURACION DEL ARCHIVO APPLICATION.PROPERTIES(Para poder desplegarlo en Render)
+**Ahora como siguiente paso vamos a configurar este archivo el cual nos va a permitir hacer el despliegue de nuestra aplicación en Render para eso vamos primero a dejar que Render automáticamente escoja el puerto donde va a correr nuestra aplicación es decir quitamos la línea donde habíamos puesto que correría en el puerto 8080, Ahora para poder hacer el despliegue de Docker ya que en la versión 21 de Java aun no la soporta Render por eso usaremos una configuración especial usando Docker en este archivo y además Render sepa que usare como base de datos PostgreSQL usando Hibernate. Por otro lado, también necesitamos que Render pueda saber cuales son las variables de entorno de nuestra aplicación eso también fue configurado en este archivo quedando nuestro archivo de la siguiente manera:**
+```Spring
+    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
     spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.hibernate.show-sql=true
     spring.application.name=apirest
     spring.config.import=optional:file:.env[.properties]
-    spring.profiles.active=${MYENV}
     spring.datasource.url=${SPRING_DATASOURCE_URL}
     spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
     spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
@@ -149,7 +151,7 @@
     <version>3.2.1</version>
 ```
 ## Creación de un archivo Docker para generar una imagen(Dockerfile)
-**En esta parte vamos a generar un archivo Docker para poder generar una imagen Docker dentro del ambiente de Railway es decir una imagen de Java 21 ya que Railway no es compatible con esta version de Java**
+**En esta parte vamos a generar un archivo Docker para poder generar una imagen Docker dentro del ambiente de Render es decir una imagen de Java 21 ya que Render no es compatible con esta version de Java**
 ```Docker
     FROM eclipse-temurin:21-jdk as build
 
@@ -161,7 +163,6 @@
     RUN mv -f target/*.jar app.jar
 
     FROM eclipse-temurin:21-jre
-
     ARG PORT
     ENV PORT=${PORT}
 
@@ -180,6 +181,20 @@
     SPRING_DATASOURCE_PASSWORD=
     SPRING_DATASOURCE_DB=
 ```
+## VARIABLES DE ENTORNO QUE CREAMOS EN NUESTRO API PARA PODER INSERTARLAS EN RENDER
+```
+    SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-cubtgot2ng1s73asgrag-a.virginia-postgres.render.com:5432/mario_postgresql
+    SPRING_DATASOURCE_USERNAME=mario_postgresql_user
+    SPRING_DATASOURCE_PASSWORD=cqju6P90zkFGypt4RX0S84n5gdlvarWk
+    SPRING_DATASOURCE_DB=mario_postgresql
+```
+**En esta parte configuramos las variables de entorno con su información, después de haber creado la base de datos PostgreSQL en Render donde nos genera una URL del servidor donde esta nuestra base de datos, así como la contraseña de nuestra base de datos, etc. Ahora nuestras variables de entorno configuradas en nuestro Servidor de Render.**
+
+## CREACION DE BASE DE DATOS POSTGRESQL EN RENDER Y CONFIGURACION DE VARIABLES DE ENTORNO EN RENDER
+![RENDER](./IMG/conexionbd-render.png)
+## ENV
+![RENDERENV](./IMG/env-render.png)
+
 ## IMPORTACION DE LAS VARIABLES DE ENTORNO AL ARCHIVO APPLICATION.PROPERTIES
 **En esta parte vamos a importar y hacer uso de las variables de entorno en nuestro archivo properties para eso lo hacemos de la siguiente manera en SPRING BOOT:**
 ```spring
@@ -188,34 +203,17 @@
     spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
     spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
 ```
-## CREACION DE LA BASE DE DATOS POSTGRESQL MEDIANTE UNA IMAGEN DE DOCKER
-**En la creación de base de datos PostgreSQL usamos Docker para poder generar una imagen es decir levantamos una base de datos en un contenedor para al desplegar la aplicación funcione en cualquier computadora que este está aplicación sin necesidad de configurar una base de datos postgres desde cero. Para poder hacer eso creamos un archivo docker-compose.yml donde vamos a especificar todo lo necesario para poder levantar esa base de datos usando también las variables de entorno que dando nuestro archivo de la siguiente manera:**
-```docker
-    version: '3.8'
-    services:
-        postgres:
-            image: postgres:latest
-            restart: always
-            environment:
-                POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
-                POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-                POSTGRES_DB: ${SPRING_DATASOURCE_DB}
-            ports:
-                - "5432:5432"
-            volumes:
-                - ./postgres:/var/lib/postgresql/data
-```
-## VISTA PREVIA DE NUESTRO CONTENEDOR DOCKER PARA LA BASE DE DATOS POSTGRESQL USANDO EL COMOANDO docker-compose up -d
-![Vista previa del proyecto](./IMG/docker.png)
-## VISTA DE NUESTRO CONTENEDOR DOCKER YA CREADO
-![Vista previa del proyecto](./IMG/dockercontenedor.png)
+## DEPLOY DE NUESTRA API EN RENDER USANDO DOCKER(imgen Java 21)
+**Para desplegar nuestro proyecto en render lo hicimos a través de un repositorio de Git que contiene todos los archivos de nuestra API, después de configurar las variables de entorno y hacer el archivo Dockerfile de Java así como sus configuraciones necesarias  ahora si lo desplegamos a producción como se muestra a continuación:**
+![desplegando-api](./IMG/despliegue-render.png)
+## DESPLEGANDO API
+![desplegando-api](./IMG/despliegue-render1.png)
+## MOSTRANDO CONEXION LA BASE DE DATOS POSTGRESQL MEDIANTE TABLEPLUS AL SERVIDOR MONTADO EN RENDER
+**Aquí nos conectamos a la base datos con nuestro nombre de usuario, contraseña, nombre de la base de datos , puerto y el Host ya no de manera local si no en el servidor de Render ya desplegado:**
+![CONEXION](./IMG/conexionbd-table-render.png)
 
-## MOSTRANDO CONEXION LA BASE DE DATOS POSTGRESQL MEDIANTE TABLEPLUS
-**Aquí nos conectamos a la base datos con nuestro nombre de usuario, contraseña, nombre de la base de datos , puerto y el Host:**
-![Vista previa del proyecto](./IMG/conexionbdd.png)
-
-## CORRIENDO NUESTRO JAVA SPRING BOOT DESDE NUESTRO ARCHIVO PRINCIPAL
-![Vista previa del proyecto](./IMG/spring.png)
+## REGISTROS DE LA BASE DE DATOS POSTGRESQL QUE SE ENCUENTRAN EN EL SERVIDOR DE RENDER(TABLA PRODUCTOS)
+![BASEDEDATOS](./IMG/conexionbd-table-render2.png) 
 
 ## METODOS HTTP Y CODIGOS DE RESPUSTA USADOS EN LA API REST
 | METODO | CODIGO |
@@ -226,19 +224,17 @@ GET ID | 200
 PUT | 201
 DELETE | 200 - 202 - 204
 
-## CONSUMIENDO NUESTRA API REST CON BRUNO
-**Bruno es un cliente para poder consumir APIs a continuación muestro como se consumió nuestra aplicación con todos los metodos que anteriormente mencionamos**
-BRUNO REST | BRUNO REST
-:-----: | :-----:
-![post](./IMG/post.png) | ![get](./IMG/get.png) |
-![getid](./IMG/getid.png) | ![getid](./IMG/GETID2.png) |
-![put](./IMG/put.png) | ![delete](./IMG/delete.png) |
+## CONSUMIENDO NUESTRA API REST CON POSTMAN YA CON UNA DIRECCION DE URL DE RENDER [Api-rest-spring-boot-java](https://api-rest-despliegue-render.onrender.com/productos)
 
-## MOSTRANDO REGISTROS DE LA BASE DE DATOS POSTGRESQL
-**Mostraremos los registros de los productos en la base de datos, así como la tabla que se generó**
-![base de datos](./IMG/basededatos.png)
- 
-### Lista De Tecnologías, Propiedades De Java, Spring Boot , Hibernate,Docker,Maven Y Herramientas Usadas En Nuestro Proyecto(API REST)  
+**Postman es un cliente para poder consumir APIs a continuación muestro como se consumió nuestra aplicación con todos los metodos que anteriormente mencionamos**
+POSTMAN REST | POSTMAN REST
+:-----: | :-----:
+![post](./IMG/post-render.png) | ![getid](./IMG/getid-render.png) |
+![get](./IMG/get-render.png) | ![get](./IMG/get2-render.png) |
+![put](./IMG/put-render.png) | ![delete](./IMG/delete-render.png) |
+
+
+ ### Lista De Tecnologías, Propiedades De Java, Spring Boot , Hibernate,Docker,Maven Y Herramientas Usadas En Nuestro Proyecto(API REST)  
 
 1. Java(Lenguaje De Programación)
 2. Spring Boot(Framework Para El Desarrollo De La API) 
@@ -248,9 +244,9 @@ BRUNO REST | BRUNO REST
 6. Docker(Manejo De Imágenes Y Contenedores)
 7. Spring Boot(Manejo De Decoradores) 
 8. Jpa De Spring(Manejo De Metodos Para Alterar La BDD) 
-9. Docker-Compose (Manejo De Contenedores Archivo yml)
+9.  Creación De Base De Datos(Postgresql en Render)
 10. TablePlus(Conexión A La Base De Datos)
-11. Bruno Rest(Para Consumir Nuestra API) 
+11. Postman(Para Consumir Nuestra API) 
 12. Entities(Entidad De La Base De Datos)
 13. Controllers(Controlador En Spring)
 14. Repository(Repository En Spring)
@@ -259,9 +255,10 @@ BRUNO REST | BRUNO REST
 17. Manejo De Variables De Entorno(.env)
 18. Configuración(Archivo application.properties)
 19. Manejo De Errores(.orElseThrow,RuntimeException)
-20. Railway(Para poder desplegar nuestra aplicación)
+20. Render(Para poder desplegar nuestra aplicación)
+21. Uso De Docker En Render(Imagen Java Spring-boot)
 
-*Elaborado Por: Mario Martínez Aguilar*
+# *Elaborado Por: Mario Martínez Aguilar*
 
 
 
