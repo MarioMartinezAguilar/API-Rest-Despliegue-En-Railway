@@ -233,6 +233,9 @@ POSTMAN REST | POSTMAN REST
 ![get](./IMG/get-render.png) | ![get](./IMG/get2-render.png) |
 ![put](./IMG/put-render.png) | ![delete](./IMG/delete-render.png) |
 
+## MONITOREO DE LAS PETCIONES HTTP DE LA API PARA SABER QUE SE ESTAN INSERTANDO,ACTUALIZANDO,BORRANDO Y SE ESTAN LEYENDO LOS DATOS DE NUESTRA BASE DE DATOS EN RENDER
+![renderfinal](./IMG/renderfinal.png)
+
 
  ### Lista De Tecnologías, Propiedades De Java, Spring Boot , Hibernate,Docker,Maven Y Herramientas Usadas En Nuestro Proyecto(API REST)  
 
